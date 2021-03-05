@@ -10,11 +10,6 @@ import Moya
 
 extension APIEndpoint {
     var method: Moya.Method{
-        switch self {
-        case .topScorers:
-            return .get
-        case .areas:
-            return .get
-        }
+        return .get
     }
 }

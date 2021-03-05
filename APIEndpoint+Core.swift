@@ -15,28 +15,25 @@ extension APIEndpoint: TargetType {
     }
     
     var sampleData: Data {
-        return try! JSONSerialization.data(withJSONObject: [String: String](), options: .prettyPrinted)
+        return Data()
     }
     
     var headers: [String : String]? {
-        return ["Content-type": "application/json"]
+        return nil
+        //return ["Content-type": "application/json"]
     }
     
     private func getBaseUrl() -> URL {
-        return URL(string: "https://api.football-data.org/v2")!
+        guard let url = URL(string: "https://api.themoviedb.org/3/") else { fatalError() }
+        return url
     }
     
     private func getAPIToken() -> String {
-        return "e3deec4a266742d2b1793fa8db47ca11"
+        return ""
     }
     
     var parameterEncoding: ParameterEncoding {
-        switch self {
-        case .areas, .topScorers:
-            return JSONEncoding.default
-        default:
-            return URLEncoding.default
-        }
+        return URLEncoding.default
     }
 }
 // Header could also be like this.
@@ -56,3 +53,4 @@ extension APIEndpoint: TargetType {
 //            "Accept-Language": locale
 //        ]
 //    }
+

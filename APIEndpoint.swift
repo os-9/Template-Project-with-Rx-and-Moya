@@ -8,6 +8,7 @@
 import Foundation
 
 enum APIEndpoint {
-    case topScorers(total: Int, limit: Int?)
-    case areas
+    case popular
+    case movie(movieId: String)
+    case search(query: String)
 }

@@ -8,28 +8,48 @@
 import Foundation
 import RxSwift
 import Moya
+import Alamofire
    
-struct ClientAPI {
-    let provider = MoyaProvider<APIEndpoint>()
-    let disposeBag = DisposeBag()
-    
-    private static let shared = ClientAPI()
-    private init() {}
-    // We're returning a Single response with just an array with the retrieved posts.
-    // You could return an Observable<PostJSON> if you need to, this is just an example.
-    func getScore() -> Single<String>{
-        return provider.rx // we use the Reactive component for our provider
-            .request(.areas) // we specify the call
-            .filterSuccessfulStatusAndRedirectCodes() // we tell it to only complete the call if the operation is successful, otherwise it will give us an error
-            .map(String.self) // we map the response to our Codable objects
-    }
+protocol Networkable {
+    var provider: MoyaProvider<APIEndpoint> { get }
 
-    // Here we return a Completable because we only need to know if the call is done or if there was an error.
-    func deletePost(with id: Int) -> Completable {
-            return provider.rx
-                .request(.topScorers(total: id, limit: id))
-                .filterSuccessfulStatusAndRedirectCodes()
-                .asObservable().ignoreElements()            // we're converting to Observable and ignoring events in order to return a Completable, which skips onNext and only maps to onCompleted
+    func fetchPopularMovies(completion: @escaping (Result<MovieResponse, Error>) -> ())
+    func fetchMovieDetail(movieId: String, completion: @escaping (Result<MovieDetailResponse, Error>) -> ())
+    func fetchSearchResult(query: String, completion: @escaping (Result<SearchResponse, Error>) -> ())
+}
+
+
+class NetworkManager: Networkable {
+    var provider = MoyaProvider<APIEndpoint>(plugins: [NetworkLoggerPlugin()])
+
+    func fetchPopularMovies(completion: @escaping (Result<MovieResponse, Error>) -> ()) {
+        request(target: .popular, completion: completion)
+    }
+    
+    func fetchMovieDetail(movieId: String, completion: @escaping (Result<MovieDetailResponse, Error>) -> ()) {
+        request(target: .movie(movieId: movieId), completion: completion)
+    }
+    
+    func fetchSearchResult(query: String, completion: @escaping (Result<SearchResponse, Error>) -> ()) {
+        request(target: .search(query: query), completion: completion)
+    }
+}
+
+private extension NetworkManager {
+    private func request<T: Decodable>(target: APIEndpoint, completion: @escaping (Result<T, Error>) -> ()) {
+        provider.request(target) { result in
+            switch result {
+            case let .success(response):
+                do {
+                    let results = try JSONDecoder().decode(T.self, from: response.data)
+                    completion(.success(results))
+                } catch let error {
+                    completion(.failure(error))
+                }
+            case let .failure(error):
+                completion(.failure(error))
+            }
+        }
     }
 }
    

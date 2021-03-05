@@ -7,34 +7,23 @@
 
 import Foundation
 import RxSwift
+import Moya
 
-class PostsViewModel {
+class ViewModel {
+    private let networkManager = NetworkManager()
     
-    func fetchRemotePosts() -> Completable {
-        return .create { observer in
-            ClientAPI.getScore()
-                .subscribe(onSuccess: { jsonPosts: String in
-                    // we fetched the posts
-                    observer(.completed)
-                }, onError: { error in
-                    // there was an error fetching the posts
-                    observer(.error(error))
-                })
+    func loadMovieDetail(movieId: String) -> Observable<MovieResponse> {
+        return Observable.create { (obs) -> Disposable in
+            self.networkManager.fetchPopularMovies { (resp) in
+                switch resp {
+                case .success(let succ):
+                    obs.onNext(succ)
+                    obs.onCompleted()
+                case .failure(let error):
+                    obs.onError(error)
+                }
+            }
+            return Disposables.create()
         }
     }
-
-    func deletePost(with id: Int) -> Completable {
-        return .create { observer in
-            ClientAPI.deletePost(with: id)
-                .subscribe(onCompleted: {
-                    // we successfully deleted the post
-                    observer(.completed)
-                }, onError: { error in
-                    // there was an error deleting the post
-                    observer(.error(error))
-                })
-        }
-    }
-    
-    
 }

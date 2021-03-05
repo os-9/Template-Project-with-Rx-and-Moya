@@ -9,11 +9,13 @@ import Foundation
 
 extension APIEndpoint {
     var path: String {
-        switch self {
-        case .topScorers(let total, _):
-            return "/competitions/\(total)/scores"
-        case .areas:
-            return "/competitions"
+            switch self {
+            case .popular:
+                return "movie/popular"
+            case .movie(let movieId):
+                return "movie/\(movieId)"
+            case .search:
+                return "search/movie"
+            }
         }
-    }
 }

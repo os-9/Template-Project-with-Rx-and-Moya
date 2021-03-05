@@ -8,17 +8,19 @@
 import Foundation
 import Moya
 
-extension APIEndpoint {
-    var task: Task {
-        switch self {
-        case .topScorers(_, let limit):
-            var params: [String: Any] = [:]
-            if let limit = limit {
-                params["limit"] = "\(limit)"
-            }
-            return .requestParameters(parameters: params, encoding: parameterEncoding)
-        case .areas:
-            return .requestPlain
+enum Constants {
+        enum API {
+            static let apiKey = "7e8a76c1bd818cc68473abb1e5fc2a20"
         }
     }
+
+extension APIEndpoint {
+    var task: Task {
+            switch self {
+            case .popular, .movie:
+                return .requestParameters(parameters: ["api_key": Constants.API.apiKey], encoding: URLEncoding.queryString)
+            case .search(let query):
+                return .requestParameters(parameters: ["query" : query, "api_key": Constants.API.apiKey], encoding: URLEncoding.queryString)
+            }
+        }
 }
